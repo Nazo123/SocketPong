@@ -1,3 +1,7 @@
+/*
+ * Run the Pong Server file first, then this Pong client file.
+ * The up and down arrow keys move the paddle.
+ */
 import processing.net.*;
 import java.util.*;
 

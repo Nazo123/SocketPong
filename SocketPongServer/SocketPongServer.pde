@@ -9,6 +9,7 @@
  *
  * To Run:
  * Run this Pong Server file first, then the Pong client file.
+ * The up and down arrow keys move the paddle.
  * Press 's' key to add a ball
  * The score should be updated on both the server (this file)
  * and the client.
