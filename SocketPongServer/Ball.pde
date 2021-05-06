@@ -11,7 +11,6 @@ public class Ball {
   Integer ballColor;
   boolean isAlive;
   boolean isIntersects;
-  JSONObject jsonOut;
 
   Ball(int size, int speed) {
     this.x = width / 2;
@@ -24,7 +23,6 @@ public class Ball {
     this.ballColor = colorProgression[this.colorProgressionIndex];
     this.isAlive = false;
     this.isIntersects = false;
-    jsonOut = new JSONObject();
   }
 
   void draw() {
@@ -149,23 +147,6 @@ public class Ball {
       if( this.isIntersects ){
         this.isIntersects = false;
       }
-    }
-  }
-
-  JSONObject toJsonObj(JSONObject jsonObj) {
-    JSONObject obj = (jsonObj == null) ? jsonOut : jsonObj;
-    
-    obj.setInt("color", this.ballColor);
-    obj.setInt("x", this.x);
-    obj.setInt("y", this.y);
-    return obj;
-  }
-
-  void parseJsonString(JSONObject jsonObj) {
-    if ( jsonObj != null ) {
-      this.ballColor = jsonObj.getInt("color");
-      this.x = jsonObj.getInt("x");
-      this.y = jsonObj.getInt("y");
     }
   }
 }

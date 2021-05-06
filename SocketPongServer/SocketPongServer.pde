@@ -1,17 +1,27 @@
-import java.util.*;
+/*
+ * The code below is a template for a multi-player Pong game that
+ * communicates over Java sockets. The template only transmits the
+ * score from the server to the client so the paddle and ball data
+ * need to be transmitted as well. The game data is serialized
+ * as strings formatted as a JSONObject. Processing has native
+ * support for handling Stringdata in a JSON format:
+ * https://www.processing.org/reference/JSONObject.html
+ *
+ * To Run:
+ * Run this Pong Server file first, then the Pong client file.
+ * Press 's' key to add a ball
+ * The score should be updated on both the server (this file)
+ * and the client.
+ */
 import processing.net.*;
-import javax.swing.JOptionPane;
+import java.util.*;
 
-static final boolean SERVER_DEBUG_ENABLED = false;
-static final boolean CLIENT_DEBUG_ENABLED = false;
 Server server;
 Client client;
 ArrayList<Ball> pongBalls;
-Object paddleHmModLock = new Object();
 HashMap<String, Paddle> paddles = new HashMap<String, Paddle>();
 Paddle myPaddle;
 
-String jsonClientMsg;
 boolean ballAdded = false;
 int ballDiameter = 50;
 int paddleLength = 100;
@@ -23,10 +33,11 @@ int now;
 void setup(){
   size(800, 600);
   
-  myPaddle = getUserPaddle();
-  paddles.put(myPaddle.name, myPaddle);
   pongBalls = new ArrayList<Ball>();
-  server = new Server(this, 8443);
+  myPaddle = new Paddle("", paddleLength, Paddle.PADDLE_LEFT, null);
+  paddles.put(myPaddle.name, myPaddle);
+  
+  server = new Server(this, 8080);
   now = millis();
 }
 
@@ -34,21 +45,17 @@ void draw(){
   background(0);
 
   sendDataToClients();
-  
   readDataFromClient();
-  
+
   addPongBall();
-  
   purgePongBalls();
 
   // No need to update the other paddles, their info comes directly from
   // the client messages
   myPaddle.update();
-  
   updateAndDrawPongBalls(); //<>//
   
   drawPaddles();
-
   drawScore();
 }
 
@@ -104,11 +111,9 @@ void updateAndDrawPongBalls(){
 }
 
 void drawPaddles(){
-  synchronized(paddleHmModLock){
-    for( String paddleName : paddles.keySet() ){
-      Paddle paddle = paddles.get(paddleName);
-      paddle.draw();
-    }
+  for( String paddleName : paddles.keySet() ){
+    Paddle paddle = paddles.get(paddleName);
+    paddle.draw();
   }
 }
 
@@ -119,94 +124,21 @@ void drawScore(){
   text("Score: " + scoreRight, width - 100 - 50, 50);
 }
 
-Paddle getUserPaddle(){
-  String leftOrRight = "";
-  String initials = "";
-  
-  while( !leftOrRight.equals("l") && !leftOrRight.equals("r") ){
-    leftOrRight = JOptionPane.showInputDialog("Left or Right side?(l/r)").toLowerCase();
-  }
-  
-  while( initials.length() == 0 ){
-    initials = JOptionPane.showInputDialog("Enter your initials:").toUpperCase();
-  }
-  
-  initials = initials.length() > 3 ? initials.substring(0, 3) : initials;
-  color randomColor = color(random(255), random(255), color(255));
-
-  if( leftOrRight.equals("l") ){
-    return new Paddle(initials, paddleLength, Paddle.PADDLE_LEFT, randomColor);
-  } 
-  
-  return new Paddle(initials, paddleLength, Paddle.PADDLE_RIGHT, randomColor);
-}
-
 void keyReleased(){
  ballAdded = false;
  myPaddle.paddleDirection = ""; 
 }
-
-String generateJsonGameInfo(){
-    JSONArray paddleArrObj = new JSONArray();
-    JSONArray ballArrObj = new JSONArray();
-    
-    int cnt = 0;
-    for( String id : paddles.keySet() ){
-      JSONObject paddleObj = paddles.get(id).toJsonObj(null);
-      paddleArrObj.setJSONObject(cnt, paddleObj);
-      cnt++;
-    }
-    
-    for( int i = 0; i < pongBalls.size(); i++ ){
-      JSONObject ballObj = pongBalls.get(i).toJsonObj(null); //<>//
-      ballArrObj.setJSONObject(i, ballObj);
-    }
-    
-    JSONObject obj = new JSONObject();
-    obj.setJSONArray("paddles", paddleArrObj);
-    obj.setJSONArray("pongBalls", ballArrObj);    
-    obj.setInt("scoreLeft", scoreLeft);
-    obj.setInt("scoreRight", scoreRight);
-    
-    return obj.toString();
-}
-
-void parseJsonPaddles(String gameInfoJsonString){
-  JSONObject obj = parseJSONObject(gameInfoJsonString);
-  JSONArray paddlesObj = obj.getJSONArray("paddles");
-  
-  // Code needs to be synch because it modifies the size of the paddles HM 
-  synchronized(paddleHmModLock){ //<>//
-    for( int i = 0; i < paddlesObj.size(); i++ ){
-      JSONObject paddleObj = paddlesObj.getJSONObject(i);
-      String paddleName = paddleObj.getString("name");
-      
-      // DO NOT update the server's paddle from client's info,
-      // it's updated in the client code (i.e., this code)
-      if( paddleName.equals(myPaddle.name) ){
-        continue; 
-      }
-      
-      if( paddles.containsKey( paddleName ) ){
-        Paddle paddle = paddles.get(paddleName);
-        paddle.x = paddleObj.getInt("x");
-        paddle.y = paddleObj.getInt("y");
-      } else {
-        int paddleLR = paddleObj.getInt("x") == 0 ? Paddle.PADDLE_LEFT : Paddle.PADDLE_RIGHT;
-        paddles.put(paddleName, new Paddle(paddleName, paddleLength, paddleLR, paddleObj.getInt("Color")));
-      }
-    }
-  }
-}
-
+ //<>// //<>//
 /*
  * Send message to client(s)/player(s)
  */
 void sendDataToClients(){
   if(millis() > now + updateFreqMs) {
-    jsonClientMsg = generateJsonGameInfo();
-    if( SERVER_DEBUG_ENABLED ){ println("Server Sending\n" + jsonClientMsg); }
-    server.write(jsonClientMsg);
+    JSONObject obj = new JSONObject();    
+    obj.setInt("scoreLeft", scoreLeft);
+    obj.setInt("scoreRight", scoreRight);
+    println(obj.toString());
+    server.write(obj.toString());
     now = millis();
   }
 }
@@ -217,7 +149,7 @@ void sendDataToClients(){
 void readDataFromClient(){
   client = server.available();
   while( client != null ){
-    parseJsonPaddles(client.readString());
+    println(client.readString());
     client = server.available();
   }
 }
