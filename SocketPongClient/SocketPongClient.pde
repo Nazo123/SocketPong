@@ -23,8 +23,8 @@ void setup() {
   size(800, 600);
 
   pongBalls = new ArrayList<Ball>();
-  myPaddle = new Paddle("", paddleLength, Paddle.PADDLE_RIGHT, null, true);
-  serverPaddle = new Paddle("",paddleLength, Paddle.PADDLE_LEFT,null,false);
+  myPaddle = new Paddle("You", paddleLength, Paddle.PADDLE_RIGHT, null, true);
+  serverPaddle = new Paddle("Server",paddleLength, Paddle.PADDLE_LEFT,null,false);
   paddles.put(myPaddle.name, myPaddle);
   paddles.put(serverPaddle.name, serverPaddle);
  
@@ -55,7 +55,10 @@ void drawPongBalls(){
 }
 
 void drawPaddles(){
-
+  for( String paddleName : paddles.keySet() ){
+    Paddle paddle = paddles.get(paddleName);
+    paddle.draw();
+  }
   }
 
 
@@ -72,6 +75,8 @@ void drawScore(){
 void sendDataToServer(){
   if(millis() > now + updateFreqMs) {
      JSONObject obj = new JSONObject();
+
+      
      obj.setInt("PadY",myPaddle.y);
       obj.setInt("PadX",myPaddle.x);
     client.write(obj.toString());
@@ -83,13 +88,27 @@ void sendDataToServer(){
  * Called when getting a message from the server/host
  */
 void readDataFromServer(){
+  pongBalls = new ArrayList<Ball>();
   if (client.available() > 0) {
+    JSONArray info = loadJSONArray("data.json");
+    for(int i = 0; i < info.size(); i++){
+   
+      JSONObject ball = info.getJSONObject(i);
+         Ball b = new Ball(ball.getInt("Size"),ball.getInt("Speed"));
+         b.speedX = ball.getInt("SpeedX");
+        b.speedY = ball.getInt("SpeedY");
+         b.x = ball.getInt("X");
+         b.y = ball.getInt("Y");
+         b.ballColor = ball.getInt("Color");
+        pongBalls.add(b);
+    }
     String messageFromServer = client.readString();
     JSONObject jsonObj = parseJSONObject(messageFromServer);
     if( jsonObj != null ){
       scoreLeft = jsonObj.getInt("scoreLeft");
       scoreRight = jsonObj.getInt("scoreRight");
       serverPaddle.y = jsonObj.getInt("PadY");
+
     }
   }
 }

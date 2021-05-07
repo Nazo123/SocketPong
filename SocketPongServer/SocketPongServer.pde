@@ -19,7 +19,7 @@ import java.util.*;
 
 Server server;
 Client client;
-ArrayList<Ball> pongBalls;
+ArrayList<Ball> pongBalls = new ArrayList<Ball>();
 HashMap<String, Paddle> paddles = new HashMap<String, Paddle>();
 Paddle myPaddle;
 Paddle clientPaddle;
@@ -30,13 +30,26 @@ int scoreLeft = 0;
 int scoreRight = 0;
 int updateFreqMs = 20;
 int now;
-
+JSONObject obj;
+ JSONArray  a;
 void setup(){
   size(800, 600);
-  
+obj = new JSONObject();
+      a = new JSONArray();
+     for(int i = 0; i< pongBalls.size();i++){
+     JSONObject ball = new JSONObject();
+     ball.setInt("Speed",pongBalls.get(i).speed);
+      ball.setInt("SpeedX",pongBalls.get(i).speedX);
+       ball.setInt("SpeedY",pongBalls.get(i).speedY);
+     ball.setInt("Size",pongBalls.get(i).size);
+     ball.setInt("X",pongBalls.get(i).x);
+     ball.setInt("Y",pongBalls.get(i).y);
+       ball.setInt("Color",pongBalls.get(i).ballColor);
+     a.setJSONObject(i,ball);
+     }
   pongBalls = new ArrayList<Ball>();
-  myPaddle = new Paddle("", paddleLength, Paddle.PADDLE_LEFT, null, true);
-  clientPaddle = new Paddle("", paddleLength, Paddle.PADDLE_RIGHT, null, false);
+  myPaddle = new Paddle("You", paddleLength, Paddle.PADDLE_LEFT, null, true);
+  clientPaddle = new Paddle("Client", paddleLength, Paddle.PADDLE_RIGHT, null, false);
   paddles.put(myPaddle.name, myPaddle);
   paddles.put(clientPaddle.name, clientPaddle);
  
@@ -139,7 +152,9 @@ void keyReleased(){
  */
 void sendDataToClients(){
   if(millis() > now + updateFreqMs) {
-    JSONObject obj = new JSONObject();
+    
+   
+    obj.setJSONArray("data/new.json", a);
     obj.setInt("PadY",myPaddle.y);
     obj.setInt("scoreLeft", scoreLeft);
     obj.setInt("scoreRight", scoreRight);
@@ -156,7 +171,7 @@ void readDataFromClient(){
   client = server.available();
   while( client != null ){
    JSONObject jsonObj = parseJSONObject(client.readString());
-    client = server.available();
       clientPaddle.y = jsonObj.getInt("PadY");
+        client = server.available();
   }
 }
