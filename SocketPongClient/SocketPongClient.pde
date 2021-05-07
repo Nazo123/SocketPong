@@ -10,6 +10,7 @@ Client client;
 ArrayList<Ball> pongBalls;
 HashMap<String, Paddle> paddles = new HashMap<String, Paddle>();
 Paddle myPaddle;
+Paddle serverPaddle;
 
 int ballDiameter = 50;
 int paddleLength = 100;
@@ -22,8 +23,11 @@ void setup() {
   size(800, 600);
 
   pongBalls = new ArrayList<Ball>();
-  myPaddle = new Paddle("", paddleLength, Paddle.PADDLE_RIGHT, null);
+  myPaddle = new Paddle("", paddleLength, Paddle.PADDLE_RIGHT, null, true);
+  serverPaddle = new Paddle("",paddleLength, Paddle.PADDLE_LEFT,null,false);
   paddles.put(myPaddle.name, myPaddle);
+  paddles.put(serverPaddle.name, serverPaddle);
+ 
 
   client = new Client(this, "localhost", 8080);
   now = millis();
@@ -38,8 +42,8 @@ void draw() {
   // No need to update the other paddles, their info comes directly from
   // the client messages
   myPaddle.update();
-
   drawPongBalls();
+  System.out.println("TESTING");
   drawPaddles();
   drawScore();
 }
@@ -51,10 +55,9 @@ void drawPongBalls(){
 }
 
 void drawPaddles(){
-  for( String paddleName : paddles.keySet() ){
-    paddles.get(paddleName).draw();
+
   }
-}
+
 
 void drawScore(){
   textSize(22);
@@ -68,7 +71,10 @@ void drawScore(){
  */
 void sendDataToServer(){
   if(millis() > now + updateFreqMs) {
-    client.write("This is the Client " + millis());
+     JSONObject obj = new JSONObject();
+     obj.setInt("PadY",myPaddle.y);
+      obj.setInt("PadX",myPaddle.x);
+    client.write(obj.toString());
     now = millis();
   }
 }
@@ -83,6 +89,7 @@ void readDataFromServer(){
     if( jsonObj != null ){
       scoreLeft = jsonObj.getInt("scoreLeft");
       scoreRight = jsonObj.getInt("scoreRight");
+      serverPaddle.y = jsonObj.getInt("PadY");
     }
   }
 }

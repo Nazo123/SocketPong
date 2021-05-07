@@ -2,6 +2,7 @@ public class Paddle {
   static final int PADDLE_WIDTH = 30;
   static final int PADDLE_LEFT = 0;
   static final int PADDLE_RIGHT = 1;
+  boolean controled;
   int x;
   int y;
   int size;
@@ -12,7 +13,8 @@ public class Paddle {
   String paddleDirection;
   String name;
   
-  Paddle(String name, int paddleSize, int paddleLR, Integer paddleColor){
+  Paddle(String name, int paddleSize, int paddleLR, Integer paddleColor, boolean controled){
+    this.controled = controled;
     this.name = name;
     this.y = height / 2;
     this.size = paddleSize;
@@ -34,7 +36,7 @@ public class Paddle {
     
     strokeWeight(5);
     stroke(this.paddleColor);
-    fill(this.paddleColor, 50);
+    fill(this.paddleColor, 25);
     rect(this.x, this.y, PADDLE_WIDTH, this.size);
     textSize(22);
     fill((this.paddleColor ^ 0x00FFFFFF) | 0xFF000000);  // Invert color with max alpha 
@@ -46,10 +48,10 @@ public class Paddle {
   
   void update(){
     if (keyPressed && key == CODED) {
-      if (keyCode == UP) {
+      if (keyCode == UP && controled) {
         this.paddleDirection = "up";
         this.y = (this.y - this.speed >= 0) ? this.y - this.speed : 0;
-      } else if (keyCode == DOWN) {
+      } else if (keyCode == DOWN && controled) {
         this.paddleDirection = "down";
         boolean isAboveScreen = this.y + this.size + this.speed < height;
         this.y = isAboveScreen ? this.y + this.speed : height - this.size;
