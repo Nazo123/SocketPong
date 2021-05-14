@@ -22,6 +22,7 @@ Client client;
 ArrayList<Ball> pongBalls = new ArrayList<Ball>();
 HashMap<String, Paddle> paddles = new HashMap<String, Paddle>();
 Paddle myPaddle;
+Paddle my1Paddle;
 Paddle clientPaddle;
 boolean ballAdded = false;
 int ballDiameter = 50;
@@ -32,15 +33,21 @@ int updateFreqMs = 20;
 int now;
 JSONObject obj;
  JSONArray  a;
+ JSONObject pad;
+ JSONArray b;
+ int paddleCounter = 0;
 void setup(){
   size(800, 600);
 
 
   pongBalls = new ArrayList<Ball>();
-  myPaddle = new Paddle("You", paddleLength, Paddle.PADDLE_LEFT, null, true);
+  paddleCounter++;
+  myPaddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true);
+  paddleCounter++;
+  my1Paddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true);
   clientPaddle = new Paddle("Client", paddleLength, Paddle.PADDLE_RIGHT, null, false);
   paddles.put(myPaddle.name, myPaddle);
-  paddles.put(clientPaddle.name, clientPaddle);
+paddles.put(my1Paddle.name, my1Paddle);
  
   
   server = new Server(this, 8080);
@@ -49,8 +56,10 @@ void setup(){
 
 void draw(){
   background(0);
+  pad = new JSONObject();
 obj = new JSONObject();
       a = new JSONArray();
+      b = new JSONArray();
      for(int i = 0; i< pongBalls.size();i++){
      JSONObject ball = new JSONObject();
      ball.setInt("Speed",pongBalls.get(i).speed);
@@ -61,6 +70,14 @@ obj = new JSONObject();
      ball.setInt("Y",pongBalls.get(i).y);
        ball.setInt("Color",pongBalls.get(i).ballColor);
      a.setJSONObject(i,ball);
+     }
+     for(int i = 1; i<paddles.size()+1;i++){
+       System.out.println(paddles.size());
+       JSONObject paddle = new JSONObject();
+       paddle.setInt("Side",paddles.get("My"+i).paddleLR);
+       paddle.setInt("PadY",paddles.get("My"+i).y);
+       paddle.setInt("Color",paddles.get("My"+i).paddleColor);
+       b.setJSONObject(i-1,paddle);
      }
   sendDataToClients();
   readDataFromClient();
@@ -156,6 +173,7 @@ void sendDataToClients(){
     
    
     obj.setJSONArray("E", a);
+    obj.setJSONArray("L",b);
     obj.setInt("PadY",myPaddle.y);
     obj.setInt("scoreLeft", scoreLeft);
     obj.setInt("scoreRight", scoreRight);

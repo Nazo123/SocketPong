@@ -11,7 +11,7 @@ ArrayList<Ball> pongBalls;
 HashMap<String, Paddle> paddles = new HashMap<String, Paddle>();
 Paddle myPaddle;
 Paddle serverPaddle;
-
+int paddleCount = 0;
 int ballDiameter = 50;
 int paddleLength = 100;
 int scoreLeft = 0;
@@ -23,10 +23,10 @@ void setup() {
   size(800, 600);
 
   pongBalls = new ArrayList<Ball>();
-  myPaddle = new Paddle("You", paddleLength, Paddle.PADDLE_RIGHT, null, true);
-  serverPaddle = new Paddle("Server",paddleLength, Paddle.PADDLE_LEFT,null,false);
+  paddleCount++;
+  myPaddle = new Paddle("My"+paddleCount, paddleLength, Paddle.PADDLE_RIGHT, null, true);
   paddles.put(myPaddle.name, myPaddle);
-  paddles.put(serverPaddle.name, serverPaddle);
+  
  
 
   client = new Client(this, "localhost", 8080);
@@ -88,12 +88,13 @@ void sendDataToServer(){
  * Called when getting a message from the server/host
  */
 void readDataFromServer(){
-  pongBalls = new ArrayList<Ball>();
+
   if (client.available() > 0) {
-   
+   pongBalls.clear();
     String messageFromServer = client.readString();
     JSONObject jsonObj = parseJSONObject(messageFromServer);
      JSONArray info = jsonObj.getJSONArray("E");
+     JSONArray pads = jsonObj.getJSONArray("L");
     for(int i = 0; i < info.size(); i++){
    
       JSONObject ball = info.getJSONObject(i);
@@ -105,11 +106,24 @@ void readDataFromServer(){
          b.ballColor = ball.getInt("Color");
         pongBalls.add(b);
     }
-    if( jsonObj != null ){
+   for(int i = 0; i<paddles.size();i++){
+     JSONObject pa = null;
+     try{
+     System.out.println("Pad size is: "+pads.size());
+     pa = pads.getJSONObject(i);
+     }
+     catch(Exception e){
+       print(e.toString());
+       System.exit(0);
+     }
+     Paddle p = new Paddle(""+i+1,paddleLength,pa.getInt("Side"),pa.getInt("Color"),false);
+     p.y = pa.getInt("PadY");
+     paddles.put(p.name,p);
+   }
+   
       scoreLeft = jsonObj.getInt("scoreLeft");
       scoreRight = jsonObj.getInt("scoreRight");
+      
       serverPaddle.y = jsonObj.getInt("PadY");
-
-    }
   }
 }
