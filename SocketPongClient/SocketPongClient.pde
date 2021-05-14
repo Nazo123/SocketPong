@@ -90,7 +90,10 @@ void sendDataToServer(){
 void readDataFromServer(){
   pongBalls = new ArrayList<Ball>();
   if (client.available() > 0) {
-    JSONArray info = loadJSONArray("data.json");
+   
+    String messageFromServer = client.readString();
+    JSONObject jsonObj = parseJSONObject(messageFromServer);
+     JSONArray info = jsonObj.getJSONArray("E");
     for(int i = 0; i < info.size(); i++){
    
       JSONObject ball = info.getJSONObject(i);
@@ -102,8 +105,6 @@ void readDataFromServer(){
          b.ballColor = ball.getInt("Color");
         pongBalls.add(b);
     }
-    String messageFromServer = client.readString();
-    JSONObject jsonObj = parseJSONObject(messageFromServer);
     if( jsonObj != null ){
       scoreLeft = jsonObj.getInt("scoreLeft");
       scoreRight = jsonObj.getInt("scoreRight");

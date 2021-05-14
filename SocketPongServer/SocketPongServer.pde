@@ -34,19 +34,8 @@ JSONObject obj;
  JSONArray  a;
 void setup(){
   size(800, 600);
-obj = new JSONObject();
-      a = new JSONArray();
-     for(int i = 0; i< pongBalls.size();i++){
-     JSONObject ball = new JSONObject();
-     ball.setInt("Speed",pongBalls.get(i).speed);
-      ball.setInt("SpeedX",pongBalls.get(i).speedX);
-       ball.setInt("SpeedY",pongBalls.get(i).speedY);
-     ball.setInt("Size",pongBalls.get(i).size);
-     ball.setInt("X",pongBalls.get(i).x);
-     ball.setInt("Y",pongBalls.get(i).y);
-       ball.setInt("Color",pongBalls.get(i).ballColor);
-     a.setJSONObject(i,ball);
-     }
+
+
   pongBalls = new ArrayList<Ball>();
   myPaddle = new Paddle("You", paddleLength, Paddle.PADDLE_LEFT, null, true);
   clientPaddle = new Paddle("Client", paddleLength, Paddle.PADDLE_RIGHT, null, false);
@@ -60,7 +49,19 @@ obj = new JSONObject();
 
 void draw(){
   background(0);
-
+obj = new JSONObject();
+      a = new JSONArray();
+     for(int i = 0; i< pongBalls.size();i++){
+     JSONObject ball = new JSONObject();
+     ball.setInt("Speed",pongBalls.get(i).speed);
+      ball.setInt("SpeedX",pongBalls.get(i).speedX);
+       ball.setInt("SpeedY",pongBalls.get(i).speedY);
+     ball.setInt("Size",pongBalls.get(i).size);
+     ball.setInt("X",pongBalls.get(i).x);
+     ball.setInt("Y",pongBalls.get(i).y);
+       ball.setInt("Color",pongBalls.get(i).ballColor);
+     a.setJSONObject(i,ball);
+     }
   sendDataToClients();
   readDataFromClient();
 
@@ -154,7 +155,7 @@ void sendDataToClients(){
   if(millis() > now + updateFreqMs) {
     
    
-    obj.setJSONArray("data/new.json", a);
+    obj.setJSONArray("E", a);
     obj.setInt("PadY",myPaddle.y);
     obj.setInt("scoreLeft", scoreLeft);
     obj.setInt("scoreRight", scoreRight);
