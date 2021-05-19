@@ -42,10 +42,10 @@ void setup(){
 
   pongBalls = new ArrayList<Ball>();
   paddleCounter++;
-  myPaddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true);
+  myPaddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true, 0);
   paddleCounter++;
-  my1Paddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true);
-  clientPaddle = new Paddle("Client", paddleLength, Paddle.PADDLE_RIGHT, null, false);
+  my1Paddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true, 1);
+  clientPaddle = new Paddle("Client", paddleLength, Paddle.PADDLE_RIGHT, null, false, -1);
   paddles.put(myPaddle.name, myPaddle);
 paddles.put(my1Paddle.name, my1Paddle);
  
@@ -71,13 +71,12 @@ obj = new JSONObject();
        ball.setInt("Color",pongBalls.get(i).ballColor);
      a.setJSONObject(i,ball);
      }
-     for(int i = 1; i<paddles.size()+1;i++){
-       System.out.println(paddles.size());
+     for(int i = 0; i<paddles.size();i++){
        JSONObject paddle = new JSONObject();
-       paddle.setInt("Side",paddles.get("My"+i).paddleLR);
-       paddle.setInt("PadY",paddles.get("My"+i).y);
-       paddle.setInt("Color",paddles.get("My"+i).paddleColor);
-       b.setJSONObject(i-1,paddle);
+       paddle.setInt("Side",paddles.get("My"+(i+1)).paddleLR);
+       paddle.setInt("PadY",paddles.get("My"+(i+1)).y);
+       paddle.setInt("Color",paddles.get("My"+(i+1)).paddleColor);
+       b.setJSONObject(i,paddle);
      }
   sendDataToClients();
   readDataFromClient();
@@ -88,6 +87,7 @@ obj = new JSONObject();
   // No need to update the other paddles, their info comes directly from
   // the client messages
   myPaddle.update();
+  my1Paddle.update();
 
   updateAndDrawPongBalls(); //<>//
   
@@ -173,11 +173,11 @@ void sendDataToClients(){
     
    
     obj.setJSONArray("E", a);
-    obj.setJSONArray("L",b);
+    obj.setJSONArray("L", b);
     obj.setInt("PadY",myPaddle.y);
     obj.setInt("scoreLeft", scoreLeft);
     obj.setInt("scoreRight", scoreRight);
-    println(obj.toString());
+ 
     server.write(obj.toString());
     now = millis();
   }

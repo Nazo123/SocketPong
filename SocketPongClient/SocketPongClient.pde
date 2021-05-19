@@ -43,7 +43,6 @@ void draw() {
   // the client messages
   myPaddle.update();
   drawPongBalls();
-  System.out.println("TESTING");
   drawPaddles();
   drawScore();
 }
@@ -106,24 +105,23 @@ void readDataFromServer(){
          b.ballColor = ball.getInt("Color");
         pongBalls.add(b);
     }
-   for(int i = 0; i<paddles.size();i++){
-     JSONObject pa = null;
-     try{
-     System.out.println("Pad size is: "+pads.size());
+      JSONObject pa;
+      
+   for(int i = 0; i<pads.size();i++){
+     
      pa = pads.getJSONObject(i);
-     }
-     catch(Exception e){
-       print(e.toString());
-       System.exit(0);
-     }
-     Paddle p = new Paddle(""+i+1,paddleLength,pa.getInt("Side"),pa.getInt("Color"),false);
+    
+     Paddle p = new Paddle(""+(i+1),paddleLength,pa.getInt("Side"),pa.getInt("Color"),false);
      p.y = pa.getInt("PadY");
      paddles.put(p.name,p);
+     println("test");
+     println(p.toString());
+     
    }
    
       scoreLeft = jsonObj.getInt("scoreLeft");
       scoreRight = jsonObj.getInt("scoreRight");
       
-      serverPaddle.y = jsonObj.getInt("PadY");
+     
   }
 }
