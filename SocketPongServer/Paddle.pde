@@ -4,7 +4,6 @@ public class Paddle {
   static final int PADDLE_RIGHT = 1;
   boolean controled;
   int x;
-  int controlType;
   int y;
   int size;
   int speed;
@@ -14,9 +13,8 @@ public class Paddle {
   String paddleDirection;
   String name;
   
-  Paddle(String name, int paddleSize, int paddleLR, Integer paddleColor, boolean controled, int controlType){
+  Paddle(String name, int paddleSize, int paddleLR, Integer paddleColor, boolean controled){
     this.controled = controled;
-    this.controlType = controlType;
     this.name = name;
     this.y = height / 2;
     this.size = paddleSize;
@@ -49,29 +47,15 @@ public class Paddle {
   }
   
   void update(){
-    if (keyPressed && key == CODED && controled) {
-      if(controlType == 0){
-      if (keyCode == UP) {
-        
+    if (keyPressed && key == CODED) {
+      if (keyCode == UP && controled) {
         this.paddleDirection = "up";
         this.y = (this.y - this.speed >= 0) ? this.y - this.speed : 0;
-      } else if (keyCode == DOWN) {
+      } else if (keyCode == DOWN && controled) {
         this.paddleDirection = "down";
         boolean isAboveScreen = this.y + this.size + this.speed < height;
         this.y = isAboveScreen ? this.y + this.speed : height - this.size;
       }
-    } else if(controlType == 1){
-      System.out.println("WORKING");
-      if (keyCode == SHIFT) {
-        this.paddleDirection = "up";
-        this.y = (this.y - this.speed >= 0) ? this.y - this.speed : 0;
-      } else if (keyCode == CONTROL) {
-        this.paddleDirection = "down";
-        boolean isAboveScreen = this.y + this.size + this.speed < height;
-        this.y = isAboveScreen ? this.y + this.speed : height - this.size;
-      }
-    } 
-    
-  }
+    }
   }
 }

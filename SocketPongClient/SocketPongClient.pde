@@ -10,6 +10,7 @@ Client client;
 ArrayList<Ball> pongBalls;
 HashMap<String, Paddle> paddles = new HashMap<String, Paddle>();
 Paddle myPaddle;
+Paddle my1Paddle;
 Paddle serverPaddle;
 int paddleCount = 0;
 int ballDiameter = 50;
@@ -18,6 +19,7 @@ int scoreLeft = 0;
 int scoreRight = 0;
 int updateFreqMs = 20;
 int now;
+JSONArray a;
 
 void setup() {
   size(800, 600);
@@ -25,8 +27,13 @@ void setup() {
   pongBalls = new ArrayList<Ball>();
   paddleCount++;
   myPaddle = new Paddle("My"+paddleCount, paddleLength, Paddle.PADDLE_RIGHT, null, true);
+  paddleCount++;
+  my1Paddle = new Paddle("My"+paddleCount, paddleLength, Paddle.PADDLE_RIGHT, null, true);
+    my1Paddle.y = my1Paddle.y - 100;
+        myPaddle.y = myPaddle.y + 100;
+
   paddles.put(myPaddle.name, myPaddle);
-  
+  paddles.put(my1Paddle.name, my1Paddle);
  
 
   client = new Client(this, "localhost", 8080);
@@ -41,10 +48,22 @@ void draw() {
   
   // No need to update the other paddles, their info comes directly from
   // the client messages
+  my1Paddle.update();
   myPaddle.update();
   drawPongBalls();
   drawPaddles();
   drawScore();
+  a = new JSONArray();
+  for(int i = 0; i<paddles.size();i++){
+       try{
+       JSONObject paddle = new JSONObject();
+       paddle.setInt("Side",paddles.get("My"+(i+1)).paddleLR);
+       paddle.setInt("PadY",paddles.get("My"+(i+1)).y);
+       paddle.setInt("Color",paddles.get("My"+(i+1)).paddleColor);
+       a.setJSONObject(i,paddle);
+       }catch(Exception e){}
+ 
+     }
 }
 
 void drawPongBalls(){
@@ -74,10 +93,7 @@ void drawScore(){
 void sendDataToServer(){
   if(millis() > now + updateFreqMs) {
      JSONObject obj = new JSONObject();
-
-      
-     obj.setInt("PadY",myPaddle.y);
-      obj.setInt("PadX",myPaddle.x);
+  obj.setJSONArray("W",a);
     client.write(obj.toString());
     now = millis();
   }

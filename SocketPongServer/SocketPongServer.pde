@@ -42,10 +42,12 @@ void setup(){
 
   pongBalls = new ArrayList<Ball>();
   paddleCounter++;
-  myPaddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true, 0);
+  myPaddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true);
+    myPaddle.y = myPaddle.y + 100;
   paddleCounter++;
-  my1Paddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true, 1);
-  clientPaddle = new Paddle("Client", paddleLength, Paddle.PADDLE_RIGHT, null, false, -1);
+  my1Paddle = new Paddle("My"+paddleCounter, paddleLength, Paddle.PADDLE_LEFT, null, true);
+  my1Paddle.y = my1Paddle.y - 100;
+  clientPaddle = new Paddle("Client", paddleLength, Paddle.PADDLE_RIGHT, null, false);
   paddles.put(myPaddle.name, myPaddle);
 paddles.put(my1Paddle.name, my1Paddle);
  
@@ -72,11 +74,16 @@ obj = new JSONObject();
      a.setJSONObject(i,ball);
      }
      for(int i = 0; i<paddles.size();i++){
+       try{
        JSONObject paddle = new JSONObject();
        paddle.setInt("Side",paddles.get("My"+(i+1)).paddleLR);
        paddle.setInt("PadY",paddles.get("My"+(i+1)).y);
        paddle.setInt("Color",paddles.get("My"+(i+1)).paddleColor);
        b.setJSONObject(i,paddle);
+       }
+       catch(Exception e){
+         
+       }
      }
   sendDataToClients();
   readDataFromClient();
@@ -188,9 +195,25 @@ void sendDataToClients(){
  */
 void readDataFromClient(){
   client = server.available();
+ 
   while( client != null ){
    JSONObject jsonObj = parseJSONObject(client.readString());
-      clientPaddle.y = jsonObj.getInt("PadY");
+       JSONArray pades = jsonObj.getJSONArray("W");
+
+    JSONObject pa;
+    for(int i = 0; i<pades.size();i++){
+    try{
+     pa = pades.getJSONObject(i);
+    
+     Paddle p = new Paddle(""+(i+1),paddleLength,pa.getInt("Side"),pa.getInt("Color"),false);
+     p.y = pa.getInt("PadY");
+     paddles.put(p.name,p);
+     println("test");
+     println(p.toString());
+    }
+    catch(Exception e){
+    }
+   }
         client = server.available();
   }
 }
